@@ -14,7 +14,7 @@ class BlogController extends Controller
 {
     public function index()
     {
-        $blogs = Blog::query()->get();
+        $blogs = Blog::with('tags')->get();
         return response()->json($blogs);
     }
 
@@ -30,7 +30,7 @@ class BlogController extends Controller
         }
         $user_id = Auth::id();
         $posted_at =  Carbon::now();
-        $user = Blog::create([
+        $blog = Blog::create([
             'title' => $request->title,
             'description' => $request->description,
             'image'=>$request->image,

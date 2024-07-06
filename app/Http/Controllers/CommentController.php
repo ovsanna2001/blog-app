@@ -28,7 +28,7 @@ class CommentController extends Controller
             return response()->json($validator->errors(), 400);
         }
         $user_id = Auth::id();
-        $user = Comment::create([
+        $comment = Comment::create([
             'content' => $request->content,
             'blog_id' => $request->blog_id,
             'user_id' => $user_id,
