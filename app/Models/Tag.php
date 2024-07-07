@@ -15,8 +15,18 @@ class Tag extends Model
         'user_id'
     ];
 
+    protected static function booted()
+    {
+        static::deleting(function ($tag) {
+            $tag->blogs()->detach();
+        });
+    }
+
     public function blogs()
     {
-        return $this->belongsToMany(Blog::class);
+        return $this->belongsToMany(Blog::class, 'blog_tags');
     }
+    
+
+
 }
