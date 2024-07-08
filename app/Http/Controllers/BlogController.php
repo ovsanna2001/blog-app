@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+
 use Auth;
 use Carbon\Carbon;
 
@@ -81,9 +82,7 @@ class BlogController extends Controller
         $blog = Blog::findOrFail($id);
         if ($blog->user_id === Auth::id()) {
             $blog->tags()->detach();
-            $comment = Comment::where('blog_id',$id)->get();
             $blog->delete();
-            $comment->delete();
             return response()->json(['message' => 'Blog deleted successfully'], 201);
         } else {
             return response()->json(['message' => 'You are not owner of this blog'], 201);

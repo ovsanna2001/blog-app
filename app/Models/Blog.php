@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Log;
 
 
 class Blog extends Model
@@ -27,14 +28,28 @@ class Blog extends Model
         return $this->belongsTo(User::class);
     }
     
-    public function comments()
-    {
-        return $this->hasMany(Comment::class);
-    }
-    
     public function tags()
     {
         return $this->belongsToMany(Tag::class,'blog_tags');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($blog) {
+            Log::info('Attempting to soft delete comments for blog ID: ' . $blog->id);
+            $blog->comments()->chunkById(100, function ($comments) {
+                foreach ($comments as $comment) {
+                    $comment->delete();
+                }
+            });
+        });
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
     }
 
 }

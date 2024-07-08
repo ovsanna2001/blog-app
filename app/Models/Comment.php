@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Log;
 
 class Comment extends Model
 {
@@ -27,18 +28,14 @@ class Comment extends Model
         return $this->belongsTo(Blog::class);
     }
 
-   // Override the delete method to hard delete
-   public function forceDelete()
-   {
-       return parent::forceDelete();
-   }
-
-   public function delete()
+    public function delete()
     {
-        if (method_exists($this, 'bootSoftDeletes')) {
+        try {
+            Log::info('Attempting to delete comment with ID: ' . $this->id);
             return $this->forceDelete();
+        } catch (\Exception $e) {
+            Log::error('Error deleting comment with ID: ' . $this->id . ' - ' . $e->getMessage());
+            throw $e;
         }
-
-        return parent::delete();
     }
 }

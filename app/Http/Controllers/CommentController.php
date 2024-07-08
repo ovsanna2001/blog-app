@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 use App\Models\Blog;
 use App\Models\Comment;
 
 use Auth;
+
 
 class CommentController extends Controller
 {
@@ -55,12 +57,15 @@ class CommentController extends Controller
 
     public function destroy($id)
     {
-        $comment = Comment::findOrFail($id);
-        if ($comment->user_id === Auth::id()) {
-            $comment->forceDelete();
-            return response()->json(['message' => 'Comment deleted successfully'], 201);
-        } else {
-            return response()->json(['message' => 'You are not owner of this comment'], 201);
+        try {
+            $comment = Comment::findOrFail($id);
+            Log::info('Deleting comment with ID: ' . $id);
+            $comment->delete();
+            Log::info('Comment with ID: ' . $id . ' deleted successfully');
+            return response()->json(['message' => 'Comment deleted successfully']);
+        } catch (\Exception $e) {
+            Log::error('Error deleting comment with ID: ' . $id . ' - ' . $e->getMessage());
+            return response()->json(['error' => 'Error deleting comment'], 500);
         }
        
     }
