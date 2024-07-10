@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\BlogCreateRequest;
+use App\Http\Requests\BlogUpdateRequest;
+use App\Http\Resources\BlogResource;
 
 use Auth;
 use Carbon\Carbon;
@@ -16,19 +18,12 @@ class BlogController extends Controller
     public function index()
     {
         $blogs = Blog::with('tags')->get();
-        return response()->json($blogs);
+        return new BlogResource($blogs);
     }
 
-    public function store(Request $request)
+    public function store(BlogCreateRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string',
-            'description' => 'required|string',
-            'image' => 'required',
-        ]);
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
-        }
+        $validated = $request->validated();
         $user_id = Auth::id();
         $posted_at =  Carbon::now();
         $blog = Blog::create([
@@ -39,7 +34,8 @@ class BlogController extends Controller
             'user_id' => $user_id
         ]);
 
-        return response()->json(['message' => 'Blog created successfully'], 201);
+        return (new BlogResource($blog))
+        ->additional(['message' => 'Blog created successfully']);
     }
 
     public function show($id)
@@ -49,19 +45,15 @@ class BlogController extends Controller
             return response()->json(['error' => 'Blog post not found'], 404);
         }
 
-        return response()->json($blog);
+        return new BlogResource($blog);
        
     }
 
-    public function update(Request $request, $id)
+    public function update(BlogUpdateRequest $request, $id)
     {
+        $validated = $request->validated();
         $blog = Blog::findOrFail($id);
         if ($blog->user_id === Auth::id()) {
-            $request->validate([
-                'image' => 'required',
-                'title' => 'required',
-                'description' => 'required',
-            ]);
             $blog->update($request->all());
             // Sync tags if provided
             if ($request->has('tags')) {
@@ -70,7 +62,8 @@ class BlogController extends Controller
                 $blog->tags()->detach();
             }
     
-            return response()->json($blog);
+            return (new BlogResource($blog))
+            ->additional(['message' => 'Blog updated successfully']);
         } else {
             return response()->json(['message' => 'You are not owner of this blog'], 201);
         }
@@ -80,9 +73,13 @@ class BlogController extends Controller
     public function destroy($id)
     {
         $blog = Blog::findOrFail($id);
+        // $comment = Comment::where('blog_id',$blog['id'])->get();
         if ($blog->user_id === Auth::id()) {
             $blog->tags()->detach();
             $blog->delete();
+            // if($comment) {
+            //     $comment->softDeletes($column = 'deleted_at', $precision = 0);
+            // }
             return response()->json(['message' => 'Blog deleted successfully'], 201);
         } else {
             return response()->json(['message' => 'You are not owner of this blog'], 201);

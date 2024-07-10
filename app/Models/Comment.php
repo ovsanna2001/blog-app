@@ -27,15 +27,4 @@ class Comment extends Model
     {
         return $this->belongsTo(Blog::class);
     }
-
-    public function delete()
-    {
-        try {
-            Log::info('Attempting to delete comment with ID: ' . $this->id);
-            return $this->forceDelete();
-        } catch (\Exception $e) {
-            Log::error('Error deleting comment with ID: ' . $this->id . ' - ' . $e->getMessage());
-            throw $e;
-        }
-    }
 }
