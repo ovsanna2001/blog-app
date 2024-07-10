@@ -63,6 +63,12 @@ return [
 
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
 
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+
     'asset_url' => env('ASSET_URL'),
 
     /*
@@ -174,6 +180,8 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+        Laravel\Sanctum\SanctumServiceProvider::class,
+        
     ])->toArray(),
 
     /*

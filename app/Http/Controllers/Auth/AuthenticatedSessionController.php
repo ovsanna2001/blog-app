@@ -4,45 +4,39 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Providers\RouteServiceProvider;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+
 
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the login view.
-     */
-    public function create(): View
-    {
-        return view('auth.login');
-    }
-
-    /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request): JsonResponse
     {
-        $request->authenticate();
+            $validated = $request->validated();
 
-        $request->session()->regenerate();
+            // Attempt to authenticate the user
+            if (!Auth::attempt($request->only('email', 'password'))) {
+                return response()->json(['message' => 'The provided credentials are incorrect.'], 401);
+            }
+            $user = Auth::user();
+            $token = $user->createToken('auth_token')->plainTextToken;
 
-        return redirect()->intended(RouteServiceProvider::HOME);
+            return response()->json(['token' => $token, 'message' => 'Logged in successfully.'], 200);
     }
 
     /**
      * Destroy an authenticated session.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request): JsonResponse
     {
-        Auth::guard('web')->logout();
+        $request->user()->currentAccessToken()->delete();
 
-        $request->session()->invalidate();
-
-        $request->session()->regenerateToken();
-
-        return redirect('/');
+        return response()->json(['message' => 'Logged out successfully.'], 200);
     }
 }

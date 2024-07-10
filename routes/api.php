@@ -1,11 +1,16 @@
 <?php
 
 use Illuminate\Http\Request;
+
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\CommentController;
-use App\Http\Controllers\AuthController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\EmailVerificationNotificationController;
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\VerifyEmailController;
 
 
 /*
@@ -18,13 +23,18 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-
+Route::middleware('guest')->group(function () {
+    Route::post('/register', [RegisteredUserController::class, 'store']);
+    Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store']);
+    Route::post('/reset-password', [NewPasswordController::class, 'store']);
+});
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-    Route::post('/logout', [AuthController::class, 'logout']);
-
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy']);
+    
     Route::post('/blog/create', [BlogController::class, 'store']);
     Route::get('/blog/{id}', [BlogController::class, 'show']);
     Route::put('/blog/update/{id}', [BlogController::class, 'update']);
@@ -40,16 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/tag/delete/{id}', [TagController::class, 'destroy']);
 
     Route::post('/blog-tag/create', [TagController::class, 'storeBlogTag']);
-
-
-
-
 });
-
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/password/email', [AuthController::class, 'sendPasswordResetLink']);
-Route::post('/password/reset', [AuthController::class, 'resetPassword']);
 
 Route::get('/blogs', [BlogController::class, 'index']);
 Route::get('/blog/comments/{id}', [CommentController::class, 'show']);
