@@ -6,12 +6,11 @@ use Illuminate\Http\Request;
 use App\Http\Requests\BlogCreateRequest;
 use App\Http\Requests\BlogUpdateRequest;
 use App\Http\Resources\BlogResource;
-
 use Auth;
-use Carbon\Carbon;
-
 use App\Models\Blog;
 use App\Models\Comment;
+use Carbon\Carbon;
+
 
 class BlogController extends Controller
 {
@@ -61,7 +60,6 @@ class BlogController extends Controller
             } else {
                 $blog->tags()->detach();
             }
-    
             return (new BlogResource($blog))
             ->additional(['message' => 'Blog updated successfully']);
         } else {
@@ -73,13 +71,10 @@ class BlogController extends Controller
     public function destroy($id)
     {
         $blog = Blog::findOrFail($id);
-        // $comment = Comment::where('blog_id',$blog['id'])->get();
         if ($blog->user_id === Auth::id()) {
             $blog->tags()->detach();
+            Comment::where('blog_id',$id)->delete();
             $blog->delete();
-            // if($comment) {
-            //     $comment->softDeletes($column = 'deleted_at', $precision = 0);
-            // }
             return response()->json(['message' => 'Blog deleted successfully'], 201);
         } else {
             return response()->json(['message' => 'You are not owner of this blog'], 201);

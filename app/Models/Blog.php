@@ -4,12 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Blog extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = [
         'image',
         'title',
@@ -33,17 +32,6 @@ class Blog extends Model
     public function comments()
     {
         return $this->hasMany(Comment::class);
-    }
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::deleting(function ($blog) {
-            $blog->comments()->each(function ($comment) {
-                $comment->delete(); // Soft delete each comment individually
-            });
-        });
     }
 
 }
